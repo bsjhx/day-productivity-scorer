@@ -1,25 +1,24 @@
 package com.bsjhx.dayproductivityscore.infrastructure;
 
-import com.bsjhx.dayproductivityscore.domain.DayId;
-import com.bsjhx.dayproductivityscore.domain.DayScore;
+import java.time.LocalDate;
 
 public class DayEntity {
 
-    private String dayId;
+    private LocalDate dayId;
     private int dayScore;
     private boolean locked;
 
-    public DayEntity(String dayId, int dayScore, boolean locked) {
+    public DayEntity(LocalDate dayId, int dayScore, boolean locked) {
         this.dayId = dayId;
         this.dayScore = dayScore;
         this.locked = locked;
     }
 
-    public String getDayId() {
+    public LocalDate getDayId() {
         return dayId;
     }
 
-    public void setDayId(String dayId) {
+    public void setDayId(LocalDate dayId) {
         this.dayId = dayId;
     }
 

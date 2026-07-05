@@ -15,7 +15,7 @@ public class InMemoryDayRepository implements DayRepository, DayReadOnlyReposito
 
     private final DayToEntityMapper dayToEntityMapper = new DayToEntityMapper();
 
-    private final Map<String, DayEntity> days = new ConcurrentHashMap<>();
+    private final Map<LocalDate, DayEntity> days = new ConcurrentHashMap<>();
 
     @Override
     public Optional<DayAggregate> findById(DayId dayId) {
@@ -30,7 +30,7 @@ public class InMemoryDayRepository implements DayRepository, DayReadOnlyReposito
 
     @Override
     public Optional<DayAggregate> findByDate(LocalDate date) {
-        return Optional.ofNullable(days.get(date.toString()))
+        return Optional.ofNullable(days.get(date))
                 .map(dayToEntityMapper::toDomain);
     }
 
