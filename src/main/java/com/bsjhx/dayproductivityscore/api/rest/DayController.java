@@ -32,12 +32,16 @@ public class DayController {
 
     @GetMapping("/today")
     public ResponseEntity<?> get() {
-        return ResponseEntity.ok(dayQueryService.handle(new GetDayScoreDetailsQuery(LocalDate.now())));
+        return dayQueryService.handle(new GetDayScoreDetailsQuery(LocalDate.now()))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{day}")
     public ResponseEntity<?> getByDay(@PathVariable LocalDate day) {
-        return ResponseEntity.ok(dayQueryService.handle(new GetDayScoreDetailsQuery(day)));
+        return dayQueryService.handle(new GetDayScoreDetailsQuery(day))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }
