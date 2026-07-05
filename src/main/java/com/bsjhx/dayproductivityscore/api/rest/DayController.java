@@ -4,6 +4,7 @@ import com.bsjhx.dayproductivityscore.api.rest.DayRestApiDto.DayRateRequest;
 import com.bsjhx.dayproductivityscore.application.command.DayCommand.RateDay;
 import com.bsjhx.dayproductivityscore.application.command.DayCommandHandler;
 import com.bsjhx.dayproductivityscore.application.query.DayQuery;
+import com.bsjhx.dayproductivityscore.application.query.DayQuery.GetDayScoreDetailsQuery;
 import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
 import com.bsjhx.dayproductivityscore.domain.DayScore;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,12 @@ public class DayController {
 
     @GetMapping("/today")
     public ResponseEntity<?> get() {
-        return ResponseEntity.ok(dayQueryService.handle(new DayQuery.GetDayScoreDetailsQuery(LocalDate.now())));
+        return ResponseEntity.ok(dayQueryService.handle(new GetDayScoreDetailsQuery(LocalDate.now())));
     }
+
+    @GetMapping("/{day}")
+    public ResponseEntity<?> getByDay(@PathVariable LocalDate day) {
+        return ResponseEntity.ok(dayQueryService.handle(new GetDayScoreDetailsQuery(day)));
+    }
+
 }
