@@ -1,0 +1,11 @@
+### Rate a day
+POST http://localhost:8080/day/
+Content-Type: application/json
+
+{
+  "day": "2026-07-05",
+  "score": 5
+}
+
+### Get today
+GET http://localhost:8080/day/today
