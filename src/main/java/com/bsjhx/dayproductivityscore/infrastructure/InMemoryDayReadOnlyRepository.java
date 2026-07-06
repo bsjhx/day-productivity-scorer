@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InMemoryDayRepository implements DayRepository {
+public class InMemoryDayReadOnlyRepository implements DayReadOnlyRepository {
 
     private final InMemoryDb inMemoryDb;
 
@@ -19,19 +19,18 @@ public class InMemoryDayRepository implements DayRepository {
 
     private final Map<LocalDate, DayEntity> days = new ConcurrentHashMap<>();
 
-    public InMemoryDayRepository(InMemoryDb inMemoryDb) {
+    public InMemoryDayReadOnlyRepository(InMemoryDb inMemoryDb) {
         this.inMemoryDb = inMemoryDb;
     }
 
     @Override
-    public Optional<DayAggregate> findById(DayId dayId) {
-        return inMemoryDb.findByDate(dayId.id())
+    public Optional<DayAggregate> findByDate(LocalDate date) {
+        return inMemoryDb.findByDate(date)
                 .map(dayToEntityMapper::toDomain);
     }
 
     @Override
-    public void save(DayAggregate day) {
-        inMemoryDb.save(dayToEntityMapper.toEntity(day));
+    public List<DayAggregate> findByMonthAndYear(int year, int month) {
+        return List.of();
     }
-
 }

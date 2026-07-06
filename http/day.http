@@ -3,7 +3,7 @@ POST http://localhost:8080/day/
 Content-Type: application/json
 
 {
-  "day": "2026-07-05",
+  "day": "2026-07-06",
   "score": 5
 }
 
@@ -11,4 +11,4 @@ Content-Type: application/json
 GET http://localhost:8080/day/today
 
 ### Get by day
-GET http://localhost:8080/day/2026-06-24
+GET http://localhost:8080/day/2026-06-23
