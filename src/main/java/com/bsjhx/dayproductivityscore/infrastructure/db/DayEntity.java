@@ -1,4 +1,4 @@
-package com.bsjhx.dayproductivityscore.infrastructure;
+package com.bsjhx.dayproductivityscore.infrastructure.db;
 
 import java.time.LocalDate;
 

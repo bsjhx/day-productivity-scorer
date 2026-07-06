@@ -1,11 +1,13 @@
-package com.bsjhx.dayproductivityscore.infrastructure;
+package com.bsjhx.dayproductivityscore.infrastructure.db.command;
+
+import com.bsjhx.dayproductivityscore.infrastructure.db.DayEntity;
 
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InMemoryDb {
+public class InMemoryWriteMemoryDb {
 
     private final Map<LocalDate, DayEntity> days = new ConcurrentHashMap<>();
 

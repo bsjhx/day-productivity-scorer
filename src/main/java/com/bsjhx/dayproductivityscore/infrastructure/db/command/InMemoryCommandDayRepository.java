@@ -1,25 +1,25 @@
-package com.bsjhx.dayproductivityscore.infrastructure;
+package com.bsjhx.dayproductivityscore.infrastructure.db.command;
 
 import com.bsjhx.dayproductivityscore.domain.DayAggregate;
 import com.bsjhx.dayproductivityscore.domain.DayId;
-import com.bsjhx.dayproductivityscore.domain.port.DayReadOnlyRepository;
-import com.bsjhx.dayproductivityscore.domain.port.DayRepository;
+import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.db.DayEntity;
+import com.bsjhx.dayproductivityscore.infrastructure.db.DayToEntityMapper;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InMemoryDayRepository implements DayRepository {
+public class InMemoryCommandDayRepository implements CommandDayRepository {
 
-    private final InMemoryDb inMemoryDb;
+    private final InMemoryWriteMemoryDb inMemoryDb;
 
     private final DayToEntityMapper dayToEntityMapper = new DayToEntityMapper();
 
     private final Map<LocalDate, DayEntity> days = new ConcurrentHashMap<>();
 
-    public InMemoryDayRepository(InMemoryDb inMemoryDb) {
+    public InMemoryCommandDayRepository(InMemoryWriteMemoryDb inMemoryDb) {
         this.inMemoryDb = inMemoryDb;
     }
 

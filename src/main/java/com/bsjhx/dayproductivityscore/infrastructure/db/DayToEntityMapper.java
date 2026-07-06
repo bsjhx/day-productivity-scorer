@@ -1,4 +1,4 @@
-package com.bsjhx.dayproductivityscore.infrastructure;
+package com.bsjhx.dayproductivityscore.infrastructure.db;
 
 import com.bsjhx.dayproductivityscore.domain.DayAggregate;
 import com.bsjhx.dayproductivityscore.domain.DayId;

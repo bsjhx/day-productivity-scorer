@@ -4,13 +4,13 @@ import com.bsjhx.dayproductivityscore.application.command.DayCommand.LockDay;
 import com.bsjhx.dayproductivityscore.application.command.DayCommand.RateDay;
 import com.bsjhx.dayproductivityscore.domain.DayAggregate;
 import com.bsjhx.dayproductivityscore.domain.DayId;
-import com.bsjhx.dayproductivityscore.domain.port.DayRepository;
+import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
 
 public class DayCommandHandler {
 
-    private final DayRepository dayRepository;
+    private final CommandDayRepository dayRepository;
 
-    public DayCommandHandler(DayRepository dayRepository) {
+    public DayCommandHandler(CommandDayRepository dayRepository) {
         this.dayRepository = dayRepository;
     }
 

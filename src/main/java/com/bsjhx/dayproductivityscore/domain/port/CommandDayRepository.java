@@ -5,7 +5,7 @@ import com.bsjhx.dayproductivityscore.domain.DayId;
 
 import java.util.Optional;
 
-public interface DayRepository {
+public interface CommandDayRepository {
     Optional<DayAggregate> findById(DayId dayId);
 
     void save(DayAggregate day);
