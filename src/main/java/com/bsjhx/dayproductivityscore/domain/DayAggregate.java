@@ -5,6 +5,7 @@ import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayLocked;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayRated;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +42,9 @@ public class DayAggregate {
         }
         if (locked) {
             throw new IllegalStateException("DayScore cannot be changed when the day is locked");
+        }
+        if (dayId.id().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Must not rate a day in the future");
         }
 
         this.dayScore = dayScore;

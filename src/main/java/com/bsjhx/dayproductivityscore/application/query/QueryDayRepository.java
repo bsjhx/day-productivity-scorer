@@ -1,4 +1,4 @@
-package com.bsjhx.dayproductivityscore.domain.port;
+package com.bsjhx.dayproductivityscore.application.query;
 
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.DayScoreView;
 

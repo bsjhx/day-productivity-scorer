@@ -2,7 +2,7 @@ package com.bsjhx.dayproductivityscore;
 
 import com.bsjhx.dayproductivityscore.application.command.DayCommandHandler;
 import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
-import com.bsjhx.dayproductivityscore.domain.port.QueryDayRepository;
+import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.db.query.DayProjectionUpdater;
 import com.bsjhx.dayproductivityscore.infrastructure.db.query.InMemoryQueryDayRepository;

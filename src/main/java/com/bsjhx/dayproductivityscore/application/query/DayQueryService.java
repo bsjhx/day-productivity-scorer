@@ -2,7 +2,6 @@ package com.bsjhx.dayproductivityscore.application.query;
 
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.DayScoreView;
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.GetDayScoreDetailsQuery;
-import com.bsjhx.dayproductivityscore.domain.port.QueryDayRepository;
 
 import java.util.Optional;
 

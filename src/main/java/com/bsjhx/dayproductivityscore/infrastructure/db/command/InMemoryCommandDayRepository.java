@@ -3,14 +3,10 @@ package com.bsjhx.dayproductivityscore.infrastructure.db.command;
 import com.bsjhx.dayproductivityscore.domain.DayAggregate;
 import com.bsjhx.dayproductivityscore.domain.DayId;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.db.DayEntity;
 import com.bsjhx.dayproductivityscore.infrastructure.db.DayToEntityMapper;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.LocalDate;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryCommandDayRepository implements CommandDayRepository {
 
@@ -19,8 +15,6 @@ public class InMemoryCommandDayRepository implements CommandDayRepository {
     private final ApplicationEventPublisher eventPublisher;
 
     private final DayToEntityMapper dayToEntityMapper = new DayToEntityMapper();
-
-    private final Map<LocalDate, DayEntity> days = new ConcurrentHashMap<>();
 
     public InMemoryCommandDayRepository(InMemoryWriteMemoryDb inMemoryDb, ApplicationEventPublisher eventPublisher) {
         this.inMemoryDb = inMemoryDb;
@@ -37,6 +31,7 @@ public class InMemoryCommandDayRepository implements CommandDayRepository {
     public void save(DayAggregate day) {
         inMemoryDb.save(dayToEntityMapper.toEntity(day));
         day.getChanges().forEach(eventPublisher::publishEvent);
+        day.clearChanges();
     }
 
 }
