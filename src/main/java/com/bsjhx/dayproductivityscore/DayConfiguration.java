@@ -4,10 +4,12 @@ import com.bsjhx.dayproductivityscore.application.command.DayCommandHandler;
 import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
 import com.bsjhx.dayproductivityscore.domain.port.QueryDayRepository;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.db.query.DayProjectionUpdater;
 import com.bsjhx.dayproductivityscore.infrastructure.db.query.InMemoryQueryDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.db.command.InMemoryCommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.db.command.InMemoryWriteMemoryDb;
 import com.bsjhx.dayproductivityscore.infrastructure.db.query.InMemoryReadDb;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,8 +27,8 @@ public class DayConfiguration {
     }
 
     @Bean
-    public CommandDayRepository inMemoryDayRepository(InMemoryWriteMemoryDb inMemoryDb) {
-        return new InMemoryCommandDayRepository(inMemoryDb);
+    public CommandDayRepository inMemoryDayRepository(InMemoryWriteMemoryDb inMemoryDb, ApplicationEventPublisher eventPublisher) {
+        return new InMemoryCommandDayRepository(inMemoryDb, eventPublisher);
     }
 
     @Bean
@@ -42,6 +44,11 @@ public class DayConfiguration {
     @Bean
     public InMemoryReadDb inMemoryReadDb() {
         return new InMemoryReadDb();
+    }
+
+    @Bean
+    public DayProjectionUpdater dayProjectionUpdater(InMemoryReadDb inMemoryReadDb) {
+        return new DayProjectionUpdater(inMemoryReadDb);
     }
 
 }

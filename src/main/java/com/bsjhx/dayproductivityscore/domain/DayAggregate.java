@@ -1,6 +1,13 @@
 package com.bsjhx.dayproductivityscore.domain;
 
+import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent;
+import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayLocked;
+import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayRated;
 import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class DayAggregate {
 
@@ -11,6 +18,8 @@ public class DayAggregate {
 
     @Getter
     private boolean locked = false;
+
+    private final List<DayDomainEvent> changes = new ArrayList<>();
 
     public DayAggregate(DayId dayId) {
         this.dayId = dayId;
@@ -33,18 +42,28 @@ public class DayAggregate {
         if (locked) {
             throw new IllegalStateException("DayScore cannot be changed when the day is locked");
         }
+
         this.dayScore = dayScore;
 
-        // todo
-        // addDomainEvent(new DayScoreChangedEvent(dayId, dayScore));
+        changes.add(new DayRated(dayId, dayScore));
     }
 
     public void lock() {
         this.locked = true;
+
+        changes.add(new DayLocked(dayId));
     }
 
     public DayId getId() {
         return dayId;
+    }
+
+    public List<DayDomainEvent> getChanges() {
+        return Collections.unmodifiableList(changes);
+    }
+
+    public void clearChanges() {
+        changes.clear();
     }
 
 }
