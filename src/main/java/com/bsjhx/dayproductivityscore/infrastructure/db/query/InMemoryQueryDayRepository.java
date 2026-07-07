@@ -4,7 +4,7 @@ import com.bsjhx.dayproductivityscore.application.query.DayQuery;
 import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.List;
 
 import static com.bsjhx.dayproductivityscore.application.query.DayQuery.*;
 
@@ -17,8 +17,8 @@ public class InMemoryQueryDayRepository implements QueryDayRepository {
     }
 
     @Override
-    public Optional<DayScoreView> findByDate(LocalDate date) {
-        return inMemoryDb.findByDate(date);
+    public List<DayScoreView> findInRange(LocalDate from, LocalDate to) {
+        return inMemoryDb.findInRange(from, to);
     }
 
 }

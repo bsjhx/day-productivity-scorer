@@ -1,9 +1,9 @@
 package com.bsjhx.dayproductivityscore.application.query;
 
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.DayScoreView;
-import com.bsjhx.dayproductivityscore.application.query.DayQuery.GetDayScoreDetailsQuery;
+import com.bsjhx.dayproductivityscore.application.query.DayQuery.GetDaysInRangeQuery;
 
-import java.util.Optional;
+import java.util.List;
 
 public class DayQueryService {
 
@@ -13,8 +13,8 @@ public class DayQueryService {
         this.repository = repository;
     }
 
-    public Optional<DayScoreView> handle(GetDayScoreDetailsQuery query) {
-        return repository.findByDate(query.date());
+    public List<DayScoreView> handle(GetDaysInRangeQuery query) {
+        return repository.findInRange(query.from(), query.to());
     }
 
 }
