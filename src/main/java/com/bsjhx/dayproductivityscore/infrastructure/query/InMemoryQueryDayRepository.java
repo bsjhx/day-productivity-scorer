@@ -1,6 +1,5 @@
-package com.bsjhx.dayproductivityscore.infrastructure.db.query;
+package com.bsjhx.dayproductivityscore.infrastructure.query;
 
-import com.bsjhx.dayproductivityscore.application.query.DayQuery;
 import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 
 import java.time.LocalDate;

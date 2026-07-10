@@ -1,7 +1,6 @@
-package com.bsjhx.dayproductivityscore.infrastructure.db.query;
+package com.bsjhx.dayproductivityscore.infrastructure.query;
 
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.DayScoreView;
-import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayLocked;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayRated;
 import org.springframework.context.event.EventListener;

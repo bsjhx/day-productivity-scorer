@@ -1,4 +1,4 @@
-package com.bsjhx.dayproductivityscore.infrastructure.db.query;
+package com.bsjhx.dayproductivityscore.infrastructure.query;
 
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.DayScoreView;
 
@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class InMemoryReadDb {
 

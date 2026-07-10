@@ -26,14 +26,10 @@ public class DayAggregate {
         this.dayId = dayId;
     }
 
-    private DayAggregate(DayId dayId, DayScore dayScore, boolean locked) {
-        this.dayId = dayId;
-        this.dayScore = dayScore;
-        this.locked = locked;
-    }
-
-    public static DayAggregate reconstitute(DayId dayId, DayScore dayScore, boolean locked) {
-        return new DayAggregate(dayId, dayScore, locked);
+    public static DayAggregate recreate(DayId dayId, List<DayDomainEvent> changes) {
+        DayAggregate dayAggregate = new DayAggregate(dayId);
+        changes.forEach(dayAggregate::apply);
+        return dayAggregate;
     }
 
     public void rate(DayScore dayScore) {
@@ -47,14 +43,13 @@ public class DayAggregate {
             throw new IllegalArgumentException("Must not rate a day in the future");
         }
 
-        this.dayScore = dayScore;
-
         changes.add(new DayRated(dayId, dayScore));
     }
 
     public void lock() {
-        this.locked = true;
-
+        if (locked) {
+            return;
+        }
         changes.add(new DayLocked(dayId));
     }
 
@@ -68,6 +63,13 @@ public class DayAggregate {
 
     public void clearChanges() {
         changes.clear();
+    }
+
+    private void apply(DayDomainEvent event) {
+        switch (event) {
+            case DayRated rated -> this.dayScore = rated.score();
+            case DayLocked ignored -> this.locked = true;
+        }
     }
 
 }
