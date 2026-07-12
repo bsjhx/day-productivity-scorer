@@ -9,9 +9,12 @@ import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionUpdater;
 import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryQueryDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.command.InMemoryCommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryReadDb;
+import org.flywaydb.core.Flyway;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class DayConfiguration {
@@ -49,6 +52,14 @@ public class DayConfiguration {
     @Bean
     public DayProjectionUpdater dayProjectionUpdater(InMemoryReadDb inMemoryReadDb) {
         return new DayProjectionUpdater(inMemoryReadDb);
+    }
+
+    @Bean(initMethod = "migrate")
+    public Flyway flyway(DataSource dataSource) {
+        return Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load();
     }
 
 }
