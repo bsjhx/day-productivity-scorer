@@ -4,11 +4,15 @@ import com.bsjhx.dayproductivityscore.application.command.DayCommandHandler;
 import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
 import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.command.SqlEventSourcedDayRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.command.event.SpringDataJdbcEventStoreRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.event.InMemoryEventStore;
 import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionUpdater;
 import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryQueryDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.command.InMemoryCommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryReadDb;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.flywaydb.core.Flyway;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -28,11 +32,11 @@ public class DayConfiguration {
     public DayQueryService dayQueryService(QueryDayRepository repository) {
         return new DayQueryService(repository);
     }
-
-    @Bean
-    public CommandDayRepository inMemoryDayRepository(InMemoryEventStore eventStore, ApplicationEventPublisher eventPublisher) {
-        return new InMemoryCommandDayRepository(eventStore, eventPublisher);
-    }
+//
+//    @Bean
+//    public CommandDayRepository inMemoryDayRepository(InMemoryEventStore eventStore, ApplicationEventPublisher eventPublisher) {
+//        return new InMemoryCommandDayRepository(eventStore, eventPublisher);
+//    }
 
     @Bean
     public QueryDayRepository inMemoryDayReadOnlyRepository(InMemoryReadDb inMemoryDb) {
@@ -62,4 +66,15 @@ public class DayConfiguration {
                 .load();
     }
 
+    @Bean
+    public CommandDayRepository sqlEventSourcedDayRepository(SpringDataJdbcEventStoreRepository repository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
+        return new SqlEventSourcedDayRepository(repository, objectMapper, eventPublisher);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
 }
