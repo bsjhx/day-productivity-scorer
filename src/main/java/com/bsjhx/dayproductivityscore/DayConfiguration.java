@@ -9,7 +9,6 @@ import com.bsjhx.dayproductivityscore.infrastructure.command.event.SpringDataJdb
 import com.bsjhx.dayproductivityscore.infrastructure.event.InMemoryEventStore;
 import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionUpdater;
 import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryQueryDayRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.command.InMemoryCommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryReadDb;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -32,11 +31,6 @@ public class DayConfiguration {
     public DayQueryService dayQueryService(QueryDayRepository repository) {
         return new DayQueryService(repository);
     }
-//
-//    @Bean
-//    public CommandDayRepository inMemoryDayRepository(InMemoryEventStore eventStore, ApplicationEventPublisher eventPublisher) {
-//        return new InMemoryCommandDayRepository(eventStore, eventPublisher);
-//    }
 
     @Bean
     public QueryDayRepository inMemoryDayReadOnlyRepository(InMemoryReadDb inMemoryDb) {
