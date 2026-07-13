@@ -8,5 +8,4 @@ CREATE TABLE event_store (
                              CONSTRAINT uq_aggregate_version UNIQUE (aggregate_id, version)
 );
 
--- Indeks do szybkiego podnoszenia strumienia zdarzeń dla konkretnego dnia
 CREATE INDEX idx_event_store_aggregate_id ON event_store(aggregate_id);

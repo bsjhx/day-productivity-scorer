@@ -4,12 +4,11 @@ import com.bsjhx.dayproductivityscore.application.command.DayCommandHandler;
 import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
 import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.command.SqlEventSourcedDayRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.command.EventStoreRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.command.event.SpringDataJdbcEventStoreRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.event.InMemoryEventStore;
 import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionUpdater;
-import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryQueryDayRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.query.InMemoryReadDb;
+import com.bsjhx.dayproductivityscore.infrastructure.query.DayQueryRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.query.SpringDataJdbcDayProjectionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.flywaydb.core.Flyway;
@@ -28,28 +27,13 @@ public class DayConfiguration {
     }
 
     @Bean
+    public DayProjectionUpdater dayProjectionUpdater(SpringDataJdbcDayProjectionRepository inMemoryReadDb) {
+        return new DayProjectionUpdater(inMemoryReadDb);
+    }
+
+    @Bean
     public DayQueryService dayQueryService(QueryDayRepository repository) {
         return new DayQueryService(repository);
-    }
-
-    @Bean
-    public QueryDayRepository inMemoryDayReadOnlyRepository(InMemoryReadDb inMemoryDb) {
-        return new InMemoryQueryDayRepository(inMemoryDb);
-    }
-
-    @Bean
-    public InMemoryEventStore inMemoryEventStore() {
-        return new InMemoryEventStore();
-    }
-
-    @Bean
-    public InMemoryReadDb inMemoryReadDb() {
-        return new InMemoryReadDb();
-    }
-
-    @Bean
-    public DayProjectionUpdater dayProjectionUpdater(InMemoryReadDb inMemoryReadDb) {
-        return new DayProjectionUpdater(inMemoryReadDb);
     }
 
     @Bean(initMethod = "migrate")
@@ -62,7 +46,12 @@ public class DayConfiguration {
 
     @Bean
     public CommandDayRepository sqlEventSourcedDayRepository(SpringDataJdbcEventStoreRepository repository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
-        return new SqlEventSourcedDayRepository(repository, objectMapper, eventPublisher);
+        return new EventStoreRepository(repository, objectMapper, eventPublisher);
+    }
+
+    @Bean
+    public DayQueryRepository dayQueryRepository(SpringDataJdbcDayProjectionRepository repository) {
+        return new DayQueryRepository(repository);
     }
 
     @Bean

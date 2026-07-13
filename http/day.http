@@ -4,11 +4,11 @@ Content-Type: application/json
 
 {
   "day": "2026-07-07",
-  "score": 2
+  "score": 3
 }
 
 ### Get by day
 GET http://localhost:8080/day/?from=2026-07-06&to=2026-07-09
 
 ### Get by day
-GET http://localhost:8080/day/?from=2026-07-07
+GET http://localhost:8080/day/?from=2026-07-02

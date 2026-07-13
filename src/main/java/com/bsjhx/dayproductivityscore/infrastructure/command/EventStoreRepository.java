@@ -14,13 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SqlEventSourcedDayRepository implements CommandDayRepository {
+public class EventStoreRepository implements CommandDayRepository {
 
     private final SpringDataJdbcEventStoreRepository jdbcRepository;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    public SqlEventSourcedDayRepository(SpringDataJdbcEventStoreRepository jdbcRepository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
+    public EventStoreRepository(SpringDataJdbcEventStoreRepository jdbcRepository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
         this.jdbcRepository = jdbcRepository;
         this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
