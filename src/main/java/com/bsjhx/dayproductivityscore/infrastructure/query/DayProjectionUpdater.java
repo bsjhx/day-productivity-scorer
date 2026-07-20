@@ -17,8 +17,8 @@ public class DayProjectionUpdater {
         this.dayProjectionRepository = dayProjectionRepository;
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    @Transactional(propagation = Propagation.MANDATORY)
     public void on(DayRated event) {
         Optional<DayProjection> byDate = dayProjectionRepository.findById(event.dayId().id());
 
@@ -33,15 +33,15 @@ public class DayProjectionUpdater {
         dayProjectionRepository.save(projection);
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    @Transactional(propagation = Propagation.MANDATORY)
     public void on(DayLocked event) {
         Optional<DayProjection> byDate = dayProjectionRepository.findById(event.dayId().id());
 
         if (byDate.isPresent()) {
             var current = byDate.get();
             current.setLocked(true);
-            dayProjectionRepository.save(current).markAsNotNew();
+            dayProjectionRepository.save(current);
         } else {
             throw new IllegalStateException("DayLocked event received for a day that does not exist in the read model");
         }

@@ -15,6 +15,9 @@ public class DayAggregate {
     private final DayId dayId;
 
     @Getter
+    private int expectedVersion = 0;
+
+    @Getter
     private DayScore dayScore = DayScore.NONE;
 
     @Getter
@@ -28,6 +31,7 @@ public class DayAggregate {
 
     public static DayAggregate recreate(DayId dayId, List<DayDomainEvent> changes) {
         DayAggregate dayAggregate = new DayAggregate(dayId);
+        dayAggregate.expectedVersion = changes.size();
         changes.forEach(dayAggregate::apply);
         return dayAggregate;
     }
@@ -43,14 +47,19 @@ public class DayAggregate {
             throw new IllegalArgumentException("Must not rate a day in the future");
         }
 
-        changes.add(new DayRated(dayId, dayScore));
+        raise(new DayRated(dayId, dayScore));
     }
 
     public void lock() {
         if (locked) {
             return;
         }
-        changes.add(new DayLocked(dayId));
+        raise(new DayLocked(dayId));
+    }
+
+    private void raise(DayDomainEvent  event) {
+        apply(event);
+        changes.add(event);
     }
 
     public DayId getId() {

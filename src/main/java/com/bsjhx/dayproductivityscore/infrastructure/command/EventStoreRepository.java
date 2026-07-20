@@ -50,6 +50,13 @@ public class EventStoreRepository implements CommandDayRepository {
         Integer lastVersion = jdbcRepository.findMaxVersionByAggregateId(day.getId().id().toString());
         int currentVersion = (lastVersion != null) ? lastVersion : 0;
 
+        if (day.getExpectedVersion() != currentVersion) {
+            throw new RuntimeException(
+                    "Aggregate modified by another process. Expected version: " +
+                            day.getExpectedVersion() + ", actual: " + currentVersion
+            );
+        }
+
         List<EventStoreEntity> entitiesToSave = new ArrayList<>();
 
         for (DayDomainEvent event : newEvents) {

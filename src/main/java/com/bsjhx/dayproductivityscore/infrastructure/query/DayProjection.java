@@ -22,27 +22,22 @@ public class DayProjection implements Persistable<LocalDate> {
     private boolean isLocked;
 
     @Transient
-    private boolean isNew = true;
+    private boolean isNew;
 
     public DayProjection() {
-        this.isNew = false; // Entities loaded from DB are not new
+        this.isNew = false;
     }
 
     public DayProjection(LocalDate dayId, int score, boolean isLocked) {
         this.id = dayId;
         this.score = score;
         this.isLocked = isLocked;
-        this.isNew = true; // Entities created in code are new
+        this.isNew = true;
     }
 
     @Override
     public boolean isNew() {
         return isNew;
-    }
-
-    public DayProjection markAsNotNew() {
-        this.isNew = false;
-        return this;
     }
 
 }
