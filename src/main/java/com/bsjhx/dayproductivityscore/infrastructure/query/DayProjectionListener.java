@@ -2,23 +2,20 @@ package com.bsjhx.dayproductivityscore.infrastructure.query;
 
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayLocked;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayRated;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Optional;
 
-public class DayProjectionUpdater {
+public class DayProjectionListener {
 
-    private final SpringDataJdbcDayProjectionRepository dayProjectionRepository;
+    private final DayProjectionJdbcRepository dayProjectionRepository;
 
-    public DayProjectionUpdater(SpringDataJdbcDayProjectionRepository dayProjectionRepository) {
+    public DayProjectionListener(DayProjectionJdbcRepository dayProjectionRepository) {
         this.dayProjectionRepository = dayProjectionRepository;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    @Transactional(propagation = Propagation.MANDATORY)
     public void on(DayRated event) {
         Optional<DayProjection> byDate = dayProjectionRepository.findById(event.dayId().id());
 
@@ -34,7 +31,6 @@ public class DayProjectionUpdater {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    @Transactional(propagation = Propagation.MANDATORY)
     public void on(DayLocked event) {
         Optional<DayProjection> byDate = dayProjectionRepository.findById(event.dayId().id());
 

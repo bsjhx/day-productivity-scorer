@@ -5,7 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 
-public interface SpringDataJdbcEventStoreRepository extends CrudRepository<EventStoreEntity, Long> {
+public interface EventStoreJdbcRepository extends CrudRepository<EventStoreEntity, Long> {
 
     @Query("SELECT * FROM event_store WHERE aggregate_id = :aggregateId ORDER BY version ASC")
     List<EventStoreEntity> findByAggregateId(@Param("aggregateId") String aggregateId);

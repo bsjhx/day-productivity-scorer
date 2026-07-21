@@ -1,7 +1,5 @@
 package com.bsjhx.dayproductivityscore.application.query;
 
-import com.bsjhx.dayproductivityscore.domain.DayScore;
-
 import java.time.LocalDate;
 
 public sealed interface DayQuery {

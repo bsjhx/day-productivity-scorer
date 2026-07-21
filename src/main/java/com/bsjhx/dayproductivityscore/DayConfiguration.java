@@ -5,10 +5,10 @@ import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
 import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.command.EventStoreRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.command.event.SpringDataJdbcEventStoreRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionUpdater;
-import com.bsjhx.dayproductivityscore.infrastructure.query.DayQueryRepository;
-import com.bsjhx.dayproductivityscore.infrastructure.query.SpringDataJdbcDayProjectionRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.command.event.EventStoreJdbcRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionListener;
+import com.bsjhx.dayproductivityscore.infrastructure.query.QueryDayRepositoryImpl;
+import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionJdbcRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.flywaydb.core.Flyway;
@@ -27,8 +27,8 @@ public class DayConfiguration {
     }
 
     @Bean
-    public DayProjectionUpdater dayProjectionUpdater(SpringDataJdbcDayProjectionRepository inMemoryReadDb) {
-        return new DayProjectionUpdater(inMemoryReadDb);
+    public DayProjectionListener dayProjectionUpdater(DayProjectionJdbcRepository dayProjectionJdbcRepository) {
+        return new DayProjectionListener(dayProjectionJdbcRepository);
     }
 
     @Bean
@@ -45,13 +45,13 @@ public class DayConfiguration {
     }
 
     @Bean
-    public CommandDayRepository sqlEventSourcedDayRepository(SpringDataJdbcEventStoreRepository repository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
+    public CommandDayRepository sqlEventSourcedDayRepository(EventStoreJdbcRepository repository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
         return new EventStoreRepository(repository, objectMapper, eventPublisher);
     }
 
     @Bean
-    public DayQueryRepository dayQueryRepository(SpringDataJdbcDayProjectionRepository repository) {
-        return new DayQueryRepository(repository);
+    public QueryDayRepositoryImpl dayQueryRepository(DayProjectionJdbcRepository repository) {
+        return new QueryDayRepositoryImpl(repository);
     }
 
     @Bean

@@ -7,22 +7,17 @@ import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 import java.time.LocalDate;
 import java.util.List;
 
-public class DayQueryRepository implements QueryDayRepository {
+public class QueryDayRepositoryImpl implements QueryDayRepository {
 
-    private final SpringDataJdbcDayProjectionRepository repository;
+    private final DayProjectionJdbcRepository jdbcRepository;
 
-    public DayQueryRepository(SpringDataJdbcDayProjectionRepository repository) {
-        this.repository = repository;
+    public QueryDayRepositoryImpl(DayProjectionJdbcRepository jdbcRepository) {
+        this.jdbcRepository = jdbcRepository;
     }
 
     @Override
     public List<DayScoreView> findInRange(LocalDate from, LocalDate to) {
-        List<DayProjection> projections;
-        if (to == null) {
-            projections = repository.findFromDate(from.toString());
-        } else {
-            projections = repository.findByDateRange(from.toString(), to.toString());
-        }
+        var projections = getDayProjections(from, to);
         return projections.stream()
                 .map(p -> new DayQuery.DayScoreView(
                         p.getId(),
@@ -32,5 +27,12 @@ public class DayQueryRepository implements QueryDayRepository {
                 .toList();
     }
 
-    ;
+    private List<DayProjection> getDayProjections(LocalDate from, LocalDate to) {
+        if (to == null) {
+            return jdbcRepository.findFromDate(from.toString());
+        } else {
+            return jdbcRepository.findByDateRange(from.toString(), to.toString());
+        }
+    }
+
 }

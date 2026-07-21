@@ -1,7 +1,13 @@
 package com.bsjhx.dayproductivityscore.domain;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@Getter
 @RequiredArgsConstructor
 public enum DayScore {
     NONE(-1),
@@ -14,16 +20,14 @@ public enum DayScore {
 
     private final int score;
 
-    public int getScore() {
-        return score;
-    }
+    private static final Map<Integer, DayScore> SCORE_MAP =
+        Stream.of(values()).collect(Collectors.toMap(DayScore::getScore, ds -> ds));
 
     public static DayScore withScore(int score) {
-        for (DayScore dayScore : DayScore.values()) {
-            if (dayScore.getScore() == score) {
-                return dayScore;
-            }
+        DayScore dayScore = SCORE_MAP.get(score);
+        if (dayScore == null) {
+            throw new IllegalArgumentException("Invalid score: " + score);
         }
-        throw new IllegalArgumentException("Invalid score: " + score);
+        return dayScore;
     }
 }

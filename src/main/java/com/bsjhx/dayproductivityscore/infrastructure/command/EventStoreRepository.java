@@ -5,7 +5,7 @@ import com.bsjhx.dayproductivityscore.domain.DayId;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.command.event.EventStoreEntity;
-import com.bsjhx.dayproductivityscore.infrastructure.command.event.SpringDataJdbcEventStoreRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.command.event.EventStoreJdbcRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +16,11 @@ import java.util.Optional;
 
 public class EventStoreRepository implements CommandDayRepository {
 
-    private final SpringDataJdbcEventStoreRepository jdbcRepository;
+    private final EventStoreJdbcRepository jdbcRepository;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    public EventStoreRepository(SpringDataJdbcEventStoreRepository jdbcRepository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
+    public EventStoreRepository(EventStoreJdbcRepository jdbcRepository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
         this.jdbcRepository = jdbcRepository;
         this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
