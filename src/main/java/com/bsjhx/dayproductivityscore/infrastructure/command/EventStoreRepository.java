@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class EventStoreRepository implements CommandDayRepository {
@@ -19,11 +20,13 @@ public class EventStoreRepository implements CommandDayRepository {
     private final EventStoreJdbcRepository jdbcRepository;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final EventJsonMapper eventJsonMapper;
 
     public EventStoreRepository(EventStoreJdbcRepository jdbcRepository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
         this.jdbcRepository = jdbcRepository;
         this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
+        this.eventJsonMapper = new EventJsonMapper(objectMapper);
     }
 
     @Override
@@ -35,7 +38,7 @@ public class EventStoreRepository implements CommandDayRepository {
         }
 
         List<DayDomainEvent> history = byAggregateId.stream()
-                .map(this::deserializeEvent)
+                .map(eventEntity -> (DayDomainEvent) eventJsonMapper.deserialize(eventEntity.getPayload(), EventTypeRegistry.resolve(eventEntity.getEventType())))
                 .toList();
 
         return Optional.of(DayAggregate.recreate(dayId, history));
@@ -61,12 +64,12 @@ public class EventStoreRepository implements CommandDayRepository {
 
         for (DayDomainEvent event : newEvents) {
             currentVersion++;
-            String payload = serializeEvent(event);
+            String payload = eventJsonMapper.serialize(event);
 
             entitiesToSave.add(EventStoreEntity.of(
                     day.getId().id().toString(),
                     currentVersion,
-                    event.getClass().getName(),
+                    event.getClass().getSimpleName(),
                     payload
             ));
         }
@@ -76,14 +79,6 @@ public class EventStoreRepository implements CommandDayRepository {
         newEvents.forEach(eventPublisher::publishEvent);
 
         day.clearChanges();
-    }
-
-    private String serializeEvent(DayDomainEvent event) {
-        try {
-            return objectMapper.writeValueAsString(event);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize event: " + event.getClass().getSimpleName(), e);
-        }
     }
 
     private DayDomainEvent deserializeEvent(EventStoreEntity entity) {
