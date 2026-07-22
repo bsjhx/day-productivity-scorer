@@ -12,19 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class EventStoreRepository implements CommandDayRepository {
 
     private final EventStoreJdbcRepository jdbcRepository;
-    private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final EventJsonMapper eventJsonMapper;
 
     public EventStoreRepository(EventStoreJdbcRepository jdbcRepository, ObjectMapper objectMapper, ApplicationEventPublisher eventPublisher) {
         this.jdbcRepository = jdbcRepository;
-        this.objectMapper = objectMapper;
         this.eventPublisher = eventPublisher;
         this.eventJsonMapper = new EventJsonMapper(objectMapper);
     }
@@ -79,14 +76,5 @@ public class EventStoreRepository implements CommandDayRepository {
         newEvents.forEach(eventPublisher::publishEvent);
 
         day.clearChanges();
-    }
-
-    private DayDomainEvent deserializeEvent(EventStoreEntity entity) {
-        try {
-            Class<?> eventClass = Class.forName(entity.getEventType());
-            return (DayDomainEvent) objectMapper.readValue(entity.getPayload(), eventClass);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to deserialize event of type: " + entity.getEventType(), e);
-        }
     }
 }
