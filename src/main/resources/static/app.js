@@ -146,3 +146,35 @@ document.getElementById('nextWeek').addEventListener('click', () => {
 
 // Initial render
 renderWeek();
+
+// Theme switcher
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+
+        // Remove all theme classes
+        document.body.classList.remove('theme-light', 'theme-image');
+
+        // Add selected theme class
+        if (theme === 'light') {
+            document.body.classList.add('theme-light');
+        } else if (theme === 'image') {
+            document.body.classList.add('theme-image');
+        }
+        // 'dark' is the default, no class needed
+
+        // Update active button
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Save preference
+        localStorage.setItem('theme', theme);
+    });
+});
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme') || 'dark';
+const themeBtn = document.querySelector(`.theme-btn[data-theme="${savedTheme}"]`);
+if (themeBtn) {
+    themeBtn.click();
+}
