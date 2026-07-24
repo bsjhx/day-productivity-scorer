@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My App</title>
+    <title>Day Productivity Score</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Hello</h1>
-<button onclick="loadData()">Load</button>
-<div id="output"></div>
-<script src="app.js"></script>
+    <div class="container">
+        <div class="header-controls">
+            <h1>Day Productivity Score</h1>
+            <div class="theme-switcher">
+                <button class="theme-btn" data-theme="dark" title="Dark Green">●</button>
+                <button class="theme-btn" data-theme="light" title="Light Mode">○</button>
+                <button class="theme-btn" data-theme="image" title="Background Image">▢</button>
+            </div>
+        </div>
+
+        <div class="week-navigation">
+            <button id="prevWeek" class="nav-button">← Previous Week</button>
+            <h2 id="weekRange"></h2>
+            <button id="nextWeek" class="nav-button">Next Week →</button>
+        </div>
+
+        <div class="week-view" id="weekView">
+            <!-- Days will be rendered here -->
+        </div>
+    </div>
+    <script src="app.js"></script>
 </body>
 </html>
