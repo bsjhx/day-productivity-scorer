@@ -24,7 +24,7 @@ class DayAggregateTest {
         assertEquals(dayId, aggregate.getId());
         assertEquals(DayScore.NONE, aggregate.getDayScore());
         assertFalse(aggregate.isLocked());
-        assertEquals(0, aggregate.getExpectedVersion());
+        assertEquals(0, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
@@ -202,7 +202,7 @@ class DayAggregateTest {
         assertEquals(dayId, aggregate.getId());
         assertEquals(DayScore.NONE, aggregate.getDayScore());
         assertFalse(aggregate.isLocked());
-        assertEquals(0, aggregate.getExpectedVersion());
+        assertEquals(0, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
@@ -221,7 +221,7 @@ class DayAggregateTest {
         assertEquals(dayId, aggregate.getId());
         assertEquals(DayScore.FOUR, aggregate.getDayScore());
         assertFalse(aggregate.isLocked());
-        assertEquals(1, aggregate.getExpectedVersion());
+        assertEquals(1, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
@@ -242,7 +242,7 @@ class DayAggregateTest {
         assertEquals(dayId, aggregate.getId());
         assertEquals(DayScore.FOUR, aggregate.getDayScore());
         assertTrue(aggregate.isLocked());
-        assertEquals(3, aggregate.getExpectedVersion());
+        assertEquals(3, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
@@ -262,7 +262,7 @@ class DayAggregateTest {
 
         // then
         assertEquals(DayScore.FOUR, aggregate.getDayScore());
-        assertEquals(4, aggregate.getExpectedVersion());
+        assertEquals(4, aggregate.getVersion());
     }
 
     @Test
@@ -280,7 +280,7 @@ class DayAggregateTest {
         // then
         assertEquals(DayScore.FIVE, aggregate.getDayScore());
         assertEquals(1, aggregate.getChanges().size());
-        assertEquals(1, aggregate.getExpectedVersion());
+        assertEquals(1, aggregate.getVersion());
     }
 
     @Test

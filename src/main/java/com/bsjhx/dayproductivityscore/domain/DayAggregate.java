@@ -1,21 +1,17 @@
 package com.bsjhx.dayproductivityscore.domain;
 
+import com.bsjhx.dayproductivityscore.domain.common.AbstractAggregate;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayLocked;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayRated;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class DayAggregate {
+public class DayAggregate extends AbstractAggregate {
 
     private final DayId dayId;
-
-    @Getter
-    private int expectedVersion = 0;
 
     @Getter
     private DayScore dayScore = DayScore.NONE;
@@ -23,15 +19,13 @@ public class DayAggregate {
     @Getter
     private boolean locked = false;
 
-    private final List<DayDomainEvent> changes = new ArrayList<>();
-
     public DayAggregate(DayId dayId) {
         this.dayId = dayId;
     }
 
     public static DayAggregate recreate(DayId dayId, List<DayDomainEvent> changes) {
         DayAggregate dayAggregate = new DayAggregate(dayId);
-        dayAggregate.expectedVersion = changes.size();
+        dayAggregate.setVersion(changes.size());
         changes.forEach(dayAggregate::apply);
         return dayAggregate;
     }
@@ -57,27 +51,14 @@ public class DayAggregate {
         raise(new DayLocked(dayId));
     }
 
-    private void raise(DayDomainEvent  event) {
-        apply(event);
-        changes.add(event);
-    }
-
     public DayId getId() {
         return dayId;
     }
 
-    public List<DayDomainEvent> getChanges() {
-        return Collections.unmodifiableList(changes);
-    }
-
-    public void clearChanges() {
-        changes.clear();
-    }
-
-    private void apply(DayDomainEvent event) {
+    protected void apply(DayDomainEvent event) {
         switch (event) {
-            case DayRated rated -> this.dayScore = rated.score();
-            case DayLocked ignored -> this.locked = true;
+            case DayDomainEvent.DayRated rated -> this.dayScore = rated.score();
+            case DayDomainEvent.DayLocked ignored -> this.locked = true;
         }
     }
 

@@ -99,7 +99,7 @@ class EventStoreRepositoryIntegrationTest {
         assertEquals(dayId, loadedAggregate.getId());
         assertEquals(DayScore.FOUR, loadedAggregate.getDayScore());
         assertFalse(loadedAggregate.isLocked());
-        assertEquals(1, loadedAggregate.getExpectedVersion());
+        assertEquals(1, loadedAggregate.getVersion());
         assertTrue(loadedAggregate.getChanges().isEmpty());
     }
 
@@ -141,7 +141,7 @@ class EventStoreRepositoryIntegrationTest {
         DayAggregate loadedAggregate = loaded.get();
         assertEquals(DayScore.FIVE, loadedAggregate.getDayScore());
         assertTrue(loadedAggregate.isLocked());
-        assertEquals(3, loadedAggregate.getExpectedVersion());
+        assertEquals(3, loadedAggregate.getVersion());
     }
 
     @Test
@@ -198,7 +198,7 @@ class EventStoreRepositoryIntegrationTest {
         // Verify loaded aggregate has correct state
         DayAggregate reloaded = repository.findById(dayId).orElseThrow();
         assertEquals(DayScore.FIVE, reloaded.getDayScore());
-        assertEquals(2, reloaded.getExpectedVersion());
+        assertEquals(2, reloaded.getVersion());
     }
 
     @Test
@@ -393,7 +393,7 @@ class EventStoreRepositoryIntegrationTest {
         // then
         assertEquals(DayScore.FOUR, finalAggregate.getDayScore());
         assertTrue(finalAggregate.isLocked());
-        assertEquals(4, finalAggregate.getExpectedVersion());
+        assertEquals(4, finalAggregate.getVersion());
 
         // Verify all events are stored
         List<EventStoreEntity> allEvents = jdbcRepository.findByAggregateId(dayId.id().toString());
