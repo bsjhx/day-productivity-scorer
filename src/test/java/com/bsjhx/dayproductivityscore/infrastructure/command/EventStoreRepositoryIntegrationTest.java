@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,10 +52,10 @@ class EventStoreRepositoryIntegrationTest {
     @Test
     void shouldReturnEmptyWhenAggregateNotFound() {
         // given
-        DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
+        UUID id = UUID.randomUUID();
 
         // when
-        Optional<DayAggregate> result = repository.findById(dayId);
+        Optional<DayAggregate> result = repository.findById(id);
 
         // then
         assertTrue(result.isEmpty());
@@ -64,7 +65,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldSaveNewAggregateAndPersistEvents() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.FIVE);
 
         // when
@@ -85,18 +86,21 @@ class EventStoreRepositoryIntegrationTest {
     @Test
     void shouldLoadAggregateFromEventStore() {
         // given
-        DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        UUID id = UUID.randomUUID();
+        DayId date = DayId.of(LocalDate.of(2026, 7, 20));
+        UUID userId = UUID.randomUUID();
+
+        DayAggregate aggregate = DayAggregate.create(id, date.id(), userId);
         aggregate.rate(DayScore.FOUR);
         repository.save(aggregate);
 
         // when
-        Optional<DayAggregate> loaded = repository.findById(dayId);
+        Optional<DayAggregate> loaded = repository.findById(id);
 
         // then
         assertTrue(loaded.isPresent());
         DayAggregate loadedAggregate = loaded.get();
-        assertEquals(dayId, loadedAggregate.getId());
+        assertEquals(id, loadedAggregate.getId());
         assertEquals(DayScore.FOUR, loadedAggregate.getDayScore());
         assertFalse(loadedAggregate.isLocked());
         assertEquals(1, loadedAggregate.getVersion());
@@ -107,7 +111,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldSaveMultipleEvents() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.TWO);
         aggregate.rate(DayScore.FOUR);
         aggregate.lock();
@@ -127,7 +131,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldLoadAggregateWithMultipleEvents() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.TWO);
         aggregate.rate(DayScore.FIVE);
         aggregate.lock();
@@ -148,7 +152,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldClearChangesAfterSave() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.THREE);
 
         // when
@@ -162,7 +166,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldNotSaveWhenNoChanges() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
 
         // when
         repository.save(aggregate);
@@ -178,7 +182,7 @@ class EventStoreRepositoryIntegrationTest {
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
 
         // First save
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.TWO);
         repository.save(aggregate);
 
@@ -207,7 +211,7 @@ class EventStoreRepositoryIntegrationTest {
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
 
         // Initial save
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.TWO);
         repository.save(aggregate);
 
@@ -234,7 +238,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldSerializeAndDeserializeDayRatedEvent() throws Exception {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.FOUR);
         repository.save(aggregate);
 
@@ -252,7 +256,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldSerializeAndDeserializeDayLockedEvent() throws Exception {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.THREE);
         aggregate.lock();
         repository.save(aggregate);
@@ -274,14 +278,14 @@ class EventStoreRepositoryIntegrationTest {
         DayId day2 = DayId.of(LocalDate.of(2026, 7, 21));
         DayId day3 = DayId.of(LocalDate.of(2026, 7, 22));
 
-        DayAggregate aggregate1 = new DayAggregate(day1);
+        DayAggregate aggregate1 = new DayAggregate();
         aggregate1.rate(DayScore.TWO);
 
-        DayAggregate aggregate2 = new DayAggregate(day2);
+        DayAggregate aggregate2 = new DayAggregate();
         aggregate2.rate(DayScore.FOUR);
         aggregate2.lock();
 
-        DayAggregate aggregate3 = new DayAggregate(day3);
+        DayAggregate aggregate3 = new DayAggregate();
         aggregate3.rate(DayScore.FIVE);
 
         // when
@@ -311,7 +315,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldPreserveEventOrderWhenLoading() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.ONE);
         aggregate.rate(DayScore.TWO);
         aggregate.rate(DayScore.THREE);
@@ -338,7 +342,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldQueryMaxVersionCorrectly() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.TWO);
         aggregate.rate(DayScore.THREE);
         aggregate.rate(DayScore.FOUR);
@@ -368,7 +372,7 @@ class EventStoreRepositoryIntegrationTest {
     void shouldHandleCompleteEventSourcingWorkflow() {
         // given - Day 1: Create and rate
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = new DayAggregate();
         aggregate.rate(DayScore.TWO);
         repository.save(aggregate);
 

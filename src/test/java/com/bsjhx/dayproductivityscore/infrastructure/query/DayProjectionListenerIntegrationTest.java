@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,14 +36,16 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldCreateNewProjectionWhenDayRatedEventReceived() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 23));
-        DayRated event = new DayRated(dayId, DayScore.FIVE);
+        DayRated event = new DayRated(id, dayId, DayScore.FIVE, userId);
 
         // when
         listener.on(event);
 
         // then
-        Optional<DayProjection> result = repository.findById(dayId.id());
+        Optional<DayProjection> result = repository.findById(id);
         assertTrue(result.isPresent());
         assertEquals(5, result.get().getScore());
         assertFalse(result.get().isLocked());
@@ -51,17 +54,19 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldUpdateExistingProjectionScore() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
         // Create initial projection
-        listener.on(new DayRated(dayId, DayScore.TWO));
+        listener.on(new DayRated(id, dayId, DayScore.TWO, userId));
 
         // when - update score
-        listener.on(new DayRated(dayId, DayScore.FIVE));
+        listener.on(new DayRated(id, dayId, DayScore.FIVE, userId));
 
         // then
-        Optional<DayProjection> result = repository.findById(date);
+        Optional<DayProjection> result = repository.findById(id);
         assertTrue(result.isPresent());
         assertEquals(5, result.get().getScore());
         assertFalse(result.get().isLocked());
@@ -70,17 +75,19 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldLockExistingProjection() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
         // Create and rate day
-        listener.on(new DayRated(dayId, DayScore.FOUR));
+        listener.on(new DayRated(id, dayId, DayScore.FOUR, userId));
 
         // when - lock day
-        listener.on(new DayLocked(dayId));
+        listener.on(new DayLocked(id, dayId));
 
         // then
-        Optional<DayProjection> result = repository.findById(date);
+        Optional<DayProjection> result = repository.findById(id);
         assertTrue(result.isPresent());
         assertEquals(4, result.get().getScore());
         assertTrue(result.get().isLocked());
@@ -89,8 +96,9 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldThrowExceptionWhenLockingNonExistentDay() {
         // given
+        UUID id = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 23));
-        DayLocked event = new DayLocked(dayId);
+        DayLocked event = new DayLocked(id, dayId);
 
         // when & then
         IllegalStateException exception = assertThrows(
@@ -105,17 +113,19 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldHandleMultipleRatingsBeforeLocking() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
         // when - rate multiple times then lock
-        listener.on(new DayRated(dayId, DayScore.ONE));
-        listener.on(new DayRated(dayId, DayScore.THREE));
-        listener.on(new DayRated(dayId, DayScore.FIVE));
-        listener.on(new DayLocked(dayId));
+        listener.on(new DayRated(id, dayId, DayScore.ONE, userId));
+        listener.on(new DayRated(id, dayId, DayScore.THREE, userId));
+        listener.on(new DayRated(id, dayId, DayScore.FIVE, userId));
+        listener.on(new DayLocked(id, dayId));
 
         // then
-        Optional<DayProjection> result = repository.findById(date);
+        Optional<DayProjection> result = repository.findById(id);
         assertTrue(result.isPresent());
         assertEquals(5, result.get().getScore());
         assertTrue(result.get().isLocked());
@@ -124,17 +134,19 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldUpdateScoreEvenWhenAlreadyLocked() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
-        listener.on(new DayRated(dayId, DayScore.TWO));
-        listener.on(new DayLocked(dayId));
+        listener.on(new DayRated(id, dayId, DayScore.TWO, userId));
+        listener.on(new DayLocked(id, dayId));
 
         // when - update score after locking
-        listener.on(new DayRated(dayId, DayScore.FIVE));
+        listener.on(new DayRated(id, dayId, DayScore.FIVE, userId));
 
         // then
-        Optional<DayProjection> result = repository.findById(date);
+        Optional<DayProjection> result = repository.findById(id);
         assertTrue(result.isPresent());
         assertEquals(5, result.get().getScore());
         assertTrue(result.get().isLocked()); // Still locked
@@ -143,6 +155,10 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldHandleMultipleDaysIndependently() {
         // given
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        UUID id3 = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date1 = LocalDate.of(2026, 7, 20);
         LocalDate date2 = LocalDate.of(2026, 7, 21);
         LocalDate date3 = LocalDate.of(2026, 7, 22);
@@ -152,15 +168,15 @@ class DayProjectionListenerIntegrationTest {
         DayId dayId3 = DayId.of(date3);
 
         // when
-        listener.on(new DayRated(dayId1, DayScore.TWO));
-        listener.on(new DayRated(dayId2, DayScore.FOUR));
-        listener.on(new DayRated(dayId3, DayScore.FIVE));
-        listener.on(new DayLocked(dayId2));
+        listener.on(new DayRated(id1, dayId1, DayScore.TWO, userId));
+        listener.on(new DayRated(id2, dayId2, DayScore.FOUR, userId));
+        listener.on(new DayRated(id3, dayId3, DayScore.FIVE, userId));
+        listener.on(new DayLocked(id2, dayId2));
 
         // then
-        Optional<DayProjection> result1 = repository.findById(date1);
-        Optional<DayProjection> result2 = repository.findById(date2);
-        Optional<DayProjection> result3 = repository.findById(date3);
+        Optional<DayProjection> result1 = repository.findById(id1);
+        Optional<DayProjection> result2 = repository.findById(id2);
+        Optional<DayProjection> result3 = repository.findById(id3);
 
         assertTrue(result1.isPresent());
         assertEquals(2, result1.get().getScore());
@@ -178,6 +194,8 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldHandleAllDayScoreValues() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
         DayScore[] allScores = {DayScore.NONE, DayScore.ZERO, DayScore.ONE,
@@ -185,9 +203,9 @@ class DayProjectionListenerIntegrationTest {
 
         // when & then
         for (DayScore score : allScores) {
-            listener.on(new DayRated(dayId, score));
+            listener.on(new DayRated(id, dayId, score, userId));
 
-            Optional<DayProjection> result = repository.findById(date);
+            Optional<DayProjection> result = repository.findById(id);
             assertTrue(result.isPresent());
             assertEquals(score.getScore(), result.get().getScore(),
                 "Failed to handle score: " + score);
@@ -197,17 +215,19 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldPersistDataAcrossTransactions() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
-        listener.on(new DayRated(dayId, DayScore.THREE));
+        listener.on(new DayRated(id, dayId, DayScore.THREE, userId));
 
         // when - verify data persists
-        Optional<DayProjection> result1 = repository.findById(date);
+        Optional<DayProjection> result1 = repository.findById(id);
 
         // Update in same transaction
-        listener.on(new DayRated(dayId, DayScore.FIVE));
-        Optional<DayProjection> result2 = repository.findById(date);
+        listener.on(new DayRated(id, dayId, DayScore.FIVE, userId));
+        Optional<DayProjection> result2 = repository.findById(id);
 
         // then
         assertTrue(result1.isPresent());
@@ -220,21 +240,23 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldHandleCompleteWorkflow() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
         // when - complete workflow: rate → update → update → lock
-        listener.on(new DayRated(dayId, DayScore.ONE));
-        Optional<DayProjection> afterFirstRating = repository.findById(date);
+        listener.on(new DayRated(id, dayId, DayScore.ONE, userId));
+        Optional<DayProjection> afterFirstRating = repository.findById(id);
 
-        listener.on(new DayRated(dayId, DayScore.THREE));
-        Optional<DayProjection> afterSecondRating = repository.findById(date);
+        listener.on(new DayRated(id, dayId, DayScore.THREE, userId));
+        Optional<DayProjection> afterSecondRating = repository.findById(id);
 
-        listener.on(new DayRated(dayId, DayScore.FIVE));
-        Optional<DayProjection> afterThirdRating = repository.findById(date);
+        listener.on(new DayRated(id, dayId, DayScore.FIVE, userId));
+        Optional<DayProjection> afterThirdRating = repository.findById(id);
 
-        listener.on(new DayLocked(dayId));
-        Optional<DayProjection> afterLocking = repository.findById(date);
+        listener.on(new DayLocked(id, dayId));
+        Optional<DayProjection> afterLocking = repository.findById(id);
 
         // then - verify each step
         assertTrue(afterFirstRating.isPresent());
@@ -257,19 +279,21 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldNotCreateDuplicateProjections() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2026, 7, 23);
         DayId dayId = DayId.of(date);
 
         // when - rate same day multiple times
-        listener.on(new DayRated(dayId, DayScore.TWO));
-        listener.on(new DayRated(dayId, DayScore.THREE));
-        listener.on(new DayRated(dayId, DayScore.FOUR));
+        listener.on(new DayRated(id, dayId, DayScore.TWO, userId));
+        listener.on(new DayRated(id, dayId, DayScore.THREE, userId));
+        listener.on(new DayRated(id, dayId, DayScore.FOUR, userId));
 
         // then - verify only one projection exists
         long count = repository.count();
         assertEquals(1, count);
 
-        Optional<DayProjection> result = repository.findById(date);
+        Optional<DayProjection> result = repository.findById(id);
         assertTrue(result.isPresent());
         assertEquals(4, result.get().getScore());
     }
@@ -277,6 +301,10 @@ class DayProjectionListenerIntegrationTest {
     @Test
     void shouldHandleBoundaryDates() {
         // given - test with different date boundaries
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        UUID id3 = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         LocalDate startOfYear = LocalDate.of(2026, 1, 1);
         LocalDate endOfYear = LocalDate.of(2026, 12, 31);
         LocalDate leapDay = LocalDate.of(2024, 2, 29);
@@ -286,14 +314,14 @@ class DayProjectionListenerIntegrationTest {
         DayId dayId3 = DayId.of(leapDay);
 
         // when
-        listener.on(new DayRated(dayId1, DayScore.ONE));
-        listener.on(new DayRated(dayId2, DayScore.THREE));
-        listener.on(new DayRated(dayId3, DayScore.FIVE));
+        listener.on(new DayRated(id1, dayId1, DayScore.ONE, userId));
+        listener.on(new DayRated(id2, dayId2, DayScore.THREE, userId));
+        listener.on(new DayRated(id3, dayId3, DayScore.FIVE, userId));
 
         // then
-        assertTrue(repository.findById(startOfYear).isPresent());
-        assertTrue(repository.findById(endOfYear).isPresent());
-        assertTrue(repository.findById(leapDay).isPresent());
+        assertTrue(repository.findById(id1).isPresent());
+        assertTrue(repository.findById(id2).isPresent());
+        assertTrue(repository.findById(id3).isPresent());
 
         assertEquals(3, repository.count());
     }

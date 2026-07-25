@@ -1,7 +1,6 @@
 package com.bsjhx.dayproductivityscore.infrastructure.command;
 
 import com.bsjhx.dayproductivityscore.domain.DayAggregate;
-import com.bsjhx.dayproductivityscore.domain.DayId;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent;
 import com.bsjhx.dayproductivityscore.domain.port.CommandDayRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.command.event.EventStoreEntity;
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class EventStoreRepository implements CommandDayRepository {
 
@@ -27,8 +27,8 @@ public class EventStoreRepository implements CommandDayRepository {
     }
 
     @Override
-    public Optional<DayAggregate> findById(DayId dayId) {
-        List<EventStoreEntity> byAggregateId = jdbcRepository.findByAggregateId(dayId.id().toString());
+    public Optional<DayAggregate> findById(UUID id) {
+        List<EventStoreEntity> byAggregateId = jdbcRepository.findByAggregateId(id.toString());
 
         if (byAggregateId.isEmpty()) {
             return Optional.empty();
@@ -38,7 +38,7 @@ public class EventStoreRepository implements CommandDayRepository {
                 .map(eventEntity -> (DayDomainEvent) eventJsonMapper.deserialize(eventEntity.getPayload(), EventTypeRegistry.resolve(eventEntity.getEventType())))
                 .toList();
 
-        return Optional.of(DayAggregate.recreate(dayId, history));
+        return Optional.of(DayAggregate.recreate(history));
     }
 
     @Override
@@ -47,7 +47,7 @@ public class EventStoreRepository implements CommandDayRepository {
         List<DayDomainEvent> newEvents = day.getChanges();
         if (newEvents.isEmpty()) return;
 
-        Integer lastVersion = jdbcRepository.findMaxVersionByAggregateId(day.getId().id().toString());
+        Integer lastVersion = jdbcRepository.findMaxVersionByAggregateId(day.getId().toString());
         int currentVersion = (lastVersion != null) ? lastVersion : 0;
 
         if (day.getVersion() != currentVersion) {
@@ -64,7 +64,7 @@ public class EventStoreRepository implements CommandDayRepository {
             String payload = eventJsonMapper.serialize(event);
 
             entitiesToSave.add(EventStoreEntity.of(
-                    day.getId().id().toString(),
+                    day.getId().toString(),
                     currentVersion,
                     event.getClass().getSimpleName(),
                     payload

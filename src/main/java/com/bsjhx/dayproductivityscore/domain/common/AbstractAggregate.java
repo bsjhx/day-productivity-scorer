@@ -12,7 +12,8 @@ import java.util.UUID;
 
 public abstract class AbstractAggregate {
 
-    private UUID id;
+    @Getter
+    protected UUID id;
 
     @Getter
     @Setter(value = AccessLevel.PROTECTED)

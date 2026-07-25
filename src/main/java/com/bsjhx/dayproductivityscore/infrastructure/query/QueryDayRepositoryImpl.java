@@ -6,6 +6,8 @@ import com.bsjhx.dayproductivityscore.application.query.QueryDayRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class QueryDayRepositoryImpl implements QueryDayRepository {
 
@@ -21,10 +23,24 @@ public class QueryDayRepositoryImpl implements QueryDayRepository {
         return projections.stream()
                 .map(p -> new DayQuery.DayScoreView(
                         p.getId(),
+                        p.getUserId(),
+                        p.getDate(),
                         p.getScore(),
                         p.isLocked()
                 ))
                 .toList();
+    }
+
+    @Override
+    public Optional<DayScoreView> findDayByDateAndUser(UUID userId, LocalDate date) {
+        return jdbcRepository.findByUserIdAndDate(userId, date)
+                .map(p -> new DayQuery.DayScoreView(
+                        p.getId(),
+                        p.getUserId(),
+                        p.getDate(),
+                        p.getScore(),
+                        p.isLocked()
+                ));
     }
 
     private List<DayProjection> getDayProjections(LocalDate from, LocalDate to) {

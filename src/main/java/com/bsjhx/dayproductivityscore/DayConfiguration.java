@@ -22,8 +22,8 @@ import javax.sql.DataSource;
 public class DayConfiguration {
 
     @Bean
-    public DayCommandHandler dayCommandHandler(CommandDayRepository dayRepository) {
-        return new DayCommandHandler(dayRepository);
+    public DayCommandHandler dayCommandHandler(CommandDayRepository dayRepository, QueryDayRepository queryDayRepository) {
+        return new DayCommandHandler(dayRepository, queryDayRepository);
     }
 
     @Bean

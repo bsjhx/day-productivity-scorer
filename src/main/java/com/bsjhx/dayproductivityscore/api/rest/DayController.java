@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/day")
@@ -25,11 +26,11 @@ public class DayController {
         this.dayQueryService = dayQueryService;
     }
 
-    @PostMapping("/")
-    public ResponseEntity<Void> post(@RequestBody DayRateRequest request) {
-        dayCommandHandler.handle(new RateDay(request.day(), DayScore.withScore(request.score())));
-        return ResponseEntity.ok().build();
-    }
+        @PostMapping("/")
+        public ResponseEntity<Void> post(@RequestBody DayRateRequest request) {
+            dayCommandHandler.handle(new RateDay(UUID.randomUUID(), request.day(), DayScore.withScore(request.score())));
+            return ResponseEntity.ok().build();
+        }
 
     @GetMapping("/")
     public ResponseEntity<List<DayScoreView>> getByDay(@RequestParam("from") LocalDate from, @RequestParam(value = "to", required = false) LocalDate to) {

@@ -6,13 +6,18 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-public interface DayProjectionJdbcRepository extends CrudRepository<DayProjection, LocalDate> {
+public interface DayProjectionJdbcRepository extends CrudRepository<DayProjection, UUID> {
 
-    @Query("SELECT * FROM day_projection WHERE id >= :fromDate AND id <= :toDate ORDER BY id ASC")
+    @Query("SELECT * FROM day_projection WHERE date >= :fromDate AND date <= :toDate ORDER BY date ASC")
     List<DayProjection> findByDateRange(@Param("fromDate") String fromDate, @Param("toDate") String toDate);
 
-    @Query("SELECT * FROM day_projection WHERE id >= :fromDate ORDER BY id ASC")
+    @Query("SELECT * FROM day_projection WHERE date >= :fromDate ORDER BY date ASC")
     List<DayProjection> findFromDate(@Param("fromDate") String fromDate);
+
+    @Query("SELECT * FROM day_projection WHERE user_id = :userId AND date = :date")
+    Optional<DayProjection> findByUserIdAndDate(@Param("userId") UUID userId, @Param("date") LocalDate date);
 
 }
