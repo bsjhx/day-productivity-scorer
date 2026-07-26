@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface QueryDayRepository {
 
-    List<DayScoreView> findInRange(LocalDate from, LocalDate to);
+    List<DayScoreView> findInRange(UUID userId, LocalDate from, LocalDate to);
 
     Optional<DayScoreView> findDayByDateAndUser(UUID userId, LocalDate date);
 }

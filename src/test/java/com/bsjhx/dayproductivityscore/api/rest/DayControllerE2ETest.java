@@ -86,7 +86,7 @@ class DayControllerE2ETest {
         assertNotNull(body);
         assertTrue(body.contains("2026-07-23"));
         assertTrue(body.contains("\"score\":4"));
-        assertTrue(body.contains("\"locked\":false"));
+        assertTrue(body.contains("\"isLocked\":false"));
     }
 
     @Test

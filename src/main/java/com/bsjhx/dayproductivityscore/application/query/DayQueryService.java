@@ -14,7 +14,7 @@ public class DayQueryService {
     }
 
     public List<DayScoreView> handle(GetDaysInRangeQuery query) {
-        return repository.findInRange(query.from(), query.to());
+        return repository.findInRange(query.userId(), query.from(), query.to());
     }
 
 }

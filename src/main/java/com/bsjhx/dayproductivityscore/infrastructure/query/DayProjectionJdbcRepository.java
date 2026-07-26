@@ -11,11 +11,11 @@ import java.util.UUID;
 
 public interface DayProjectionJdbcRepository extends CrudRepository<DayProjection, UUID> {
 
-    @Query("SELECT * FROM day_projection WHERE date >= :fromDate AND date <= :toDate ORDER BY date ASC")
-    List<DayProjection> findByDateRange(@Param("fromDate") String fromDate, @Param("toDate") String toDate);
+    @Query("SELECT * FROM day_projection WHERE user_id = :userId AND date >= :fromDate AND date <= :toDate ORDER BY date ASC")
+    List<DayProjection> findByDateRange(@Param("userId") UUID userId, @Param("fromDate") String fromDate, @Param("toDate") String toDate);
 
-    @Query("SELECT * FROM day_projection WHERE date >= :fromDate ORDER BY date ASC")
-    List<DayProjection> findFromDate(@Param("fromDate") String fromDate);
+    @Query("SELECT * FROM day_projection WHERE user_id = :userId AND date >= :fromDate ORDER BY date ASC")
+    List<DayProjection> findFromDate(@Param("userId") UUID userId, @Param("fromDate") String fromDate);
 
     @Query("SELECT * FROM day_projection WHERE user_id = :userId AND date = :date")
     Optional<DayProjection> findByUserIdAndDate(@Param("userId") UUID userId, @Param("date") LocalDate date);
