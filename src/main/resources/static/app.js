@@ -1,3 +1,37 @@
+// Check if user is logged in
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login.html';
+        return false;
+    }
+    return true;
+}
+
+// Add token to fetch requests
+function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login.html';
+        return Promise.reject('No token');
+    }
+
+    options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`
+    };
+
+    return fetch(url, options).then(response => {
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = '/login.html';
+            throw new Error('Unauthorized');
+        }
+        return response;
+    });
+}
+
 // Get current week's Monday
 function getMonday(date) {
     const d = new Date(date);
@@ -50,7 +84,7 @@ async function fetchDays(fromDate, toDate) {
     const to = formatDate(toDate);
 
     const url = `/day/?from=${from}&to=${to}`;
-    const response = await fetch(url);
+    const response = await authFetch(url);
 
     if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -62,7 +96,7 @@ async function fetchDays(fromDate, toDate) {
 // Rate a day
 async function rateDay(date, score) {
     const url = '/day/';
-    const response = await fetch(url, {
+    const response = await authFetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -94,7 +128,7 @@ async function renderWeek() {
     // Create a map of date -> day data
     const dayMap = {};
     days.forEach(day => {
-        dayMap[day.date] = day;
+        dayMap[day.day] = day;
     });
 
     // Render all 7 days
@@ -144,9 +178,6 @@ document.getElementById('nextWeek').addEventListener('click', () => {
     renderWeek();
 });
 
-// Initial render
-renderWeek();
-
 // Theme switcher
 document.querySelectorAll('.theme-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -178,3 +209,16 @@ const themeBtn = document.querySelector(`.theme-btn[data-theme="${savedTheme}"]`
 if (themeBtn) {
     themeBtn.click();
 }
+
+// Logout handler
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = '/login.html';
+});
+
+// Check auth on page load
+checkAuth();
+
+// Initial render
+renderWeek();

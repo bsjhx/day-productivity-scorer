@@ -4,12 +4,14 @@ import com.bsjhx.dayproductivityscore.api.rest.DayRestApiDto.DayRateRequest;
 import com.bsjhx.dayproductivityscore.api.rest.DayRestApiDto.SingleDayResponse;
 import com.bsjhx.dayproductivityscore.infrastructure.command.event.EventStoreJdbcRepository;
 import com.bsjhx.dayproductivityscore.infrastructure.query.DayProjectionJdbcRepository;
+import com.bsjhx.dayproductivityscore.infrastructure.security.TestSecurityConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@Import(TestSecurityConfiguration.class)
 class DayControllerE2ETest {
 
     @LocalServerPort

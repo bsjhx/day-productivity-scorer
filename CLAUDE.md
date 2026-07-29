@@ -62,5 +62,38 @@ This application follows **CQRS (Command Query Responsibility Segregation)** wit
 
 ## REST API
 
+### Authentication
+Application uses JWT (JSON Web Token) authentication:
+- `POST /auth/login`: Login with username/password, returns JWT token (body: `{"username": "user", "password": "password"}`)
+- All other endpoints require `Authorization: Bearer <token>` header
+- Token expires after 24 hours
+- Default users: `user/password` (USER role), `admin/admin` (USER+ADMIN roles)
+
+### Endpoints
 - `POST /day/`: Rate a day (body: `{"day": "2026-07-08", "score": 8}`)
 - `GET /day/?from=2026-07-01&to=2026-07-08`: Get days in range (to is optional)
+
+## Security
+
+- **JWT Authentication**: Stateless authentication using JWT tokens
+- **User Management**: Users stored in database with BCrypt password hashing
+- **Authorization**: Method-level security with `@PreAuthorize` annotations
+- **UserPrincipal**: Custom UserDetails implementation containing userId (UUID) and roles
+- **Test Configuration**: Tests use fake authentication filter that creates mock UserPrincipal
+
+### Environment Variables
+
+Required environment variables for production:
+- `JWT_SECRET` - Secret key for JWT signing (minimum 256 bits)
+- `JWT_EXPIRATION_MS` - Token expiration time in milliseconds (default: 86400000 = 24 hours)
+
+Example:
+```bash
+export JWT_SECRET="your-production-secret-key-at-least-256-bits-long"
+export JWT_EXPIRATION_MS=86400000
+```
+
+Generate a secure secret:
+```bash
+openssl rand -base64 32
+```
