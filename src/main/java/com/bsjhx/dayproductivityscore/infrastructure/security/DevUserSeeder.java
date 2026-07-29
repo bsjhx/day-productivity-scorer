@@ -23,6 +23,7 @@ public class DevUserSeeder {
     }
 
     @Component
+    @Profile("local")
     static class UserSeedingService {
         private final UserRepository userRepository;
         private final PasswordEncoder passwordEncoder;
