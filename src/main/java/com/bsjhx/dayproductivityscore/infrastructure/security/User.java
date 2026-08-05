@@ -1,4 +1,4 @@
-package com.bsjhx.dayproductivityscore.domain;
+package com.bsjhx.dayproductivityscore.infrastructure.security;
 
 import lombok.Getter;
 import lombok.Setter;
