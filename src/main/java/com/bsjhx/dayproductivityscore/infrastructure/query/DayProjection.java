@@ -8,14 +8,19 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Table("day_projection")
-public class DayProjection implements Persistable<LocalDate> {
+public class DayProjection implements Persistable<UUID> {
 
     @Id
-    private LocalDate id;
+    private UUID id;
+
+    private UUID userId;
+
+    private LocalDate date;
 
     private int score;
 
@@ -28,8 +33,10 @@ public class DayProjection implements Persistable<LocalDate> {
         this.isNew = false;
     }
 
-    public DayProjection(LocalDate dayId, int score, boolean isLocked) {
-        this.id = dayId;
+    public DayProjection(UUID id, UUID userId, LocalDate date, int score, boolean isLocked) {
+        this.id = id;
+        this.userId = userId;
+        this.date = date;
         this.score = score;
         this.isLocked = isLocked;
         this.isNew = true;

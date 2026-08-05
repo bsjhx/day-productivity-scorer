@@ -1,21 +1,18 @@
 package com.bsjhx.dayproductivityscore.domain;
 
+import com.bsjhx.dayproductivityscore.domain.common.AbstractAggregate;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayLocked;
 import com.bsjhx.dayproductivityscore.domain.event.DayDomainEvent.DayRated;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
-public class DayAggregate {
+public class DayAggregate extends AbstractAggregate {
 
-    private final DayId dayId;
-
-    @Getter
-    private int expectedVersion = 0;
+    private DayId dayId;
 
     @Getter
     private DayScore dayScore = DayScore.NONE;
@@ -23,17 +20,26 @@ public class DayAggregate {
     @Getter
     private boolean locked = false;
 
-    private final List<DayDomainEvent> changes = new ArrayList<>();
+    @Getter
+    private UUID userId;
 
-    public DayAggregate(DayId dayId) {
-        this.dayId = dayId;
+    public DayAggregate() {
     }
 
-    public static DayAggregate recreate(DayId dayId, List<DayDomainEvent> changes) {
-        DayAggregate dayAggregate = new DayAggregate(dayId);
-        dayAggregate.expectedVersion = changes.size();
+    public static DayAggregate recreate(List<DayDomainEvent> changes) {
+        DayAggregate dayAggregate = new DayAggregate();
+        dayAggregate.setVersion(changes.size());
         changes.forEach(dayAggregate::apply);
+
         return dayAggregate;
+    }
+
+    public static DayAggregate create(UUID id, LocalDate date, UUID userId) {
+        var day = new DayAggregate();
+
+        day.raise(new DayDomainEvent.DayCreated(id, DayId.of(date), userId));
+
+        return day;
     }
 
     public void rate(DayScore dayScore) {
@@ -47,37 +53,25 @@ public class DayAggregate {
             throw new IllegalArgumentException("Must not rate a day in the future");
         }
 
-        raise(new DayRated(dayId, dayScore));
+        raise(new DayRated(id, dayId, dayScore, userId));
     }
 
     public void lock() {
         if (locked) {
             return;
         }
-        raise(new DayLocked(dayId));
+        raise(new DayLocked(id, dayId));
     }
 
-    private void raise(DayDomainEvent  event) {
-        apply(event);
-        changes.add(event);
-    }
-
-    public DayId getId() {
-        return dayId;
-    }
-
-    public List<DayDomainEvent> getChanges() {
-        return Collections.unmodifiableList(changes);
-    }
-
-    public void clearChanges() {
-        changes.clear();
-    }
-
-    private void apply(DayDomainEvent event) {
+    protected void apply(DayDomainEvent event) {
         switch (event) {
-            case DayRated rated -> this.dayScore = rated.score();
-            case DayLocked ignored -> this.locked = true;
+            case DayDomainEvent.DayRated rated -> this.dayScore = rated.score();
+            case DayDomainEvent.DayLocked ignored -> this.locked = true;
+            case DayDomainEvent.DayCreated dayCreated -> {
+                this.id = dayCreated.id();
+                this.dayId = dayCreated.dayId();
+                this.userId = dayCreated.userId();
+            }
         }
     }
 

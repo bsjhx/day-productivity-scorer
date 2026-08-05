@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,23 +17,27 @@ class DayAggregateTest {
     void shouldCreateNewDayAggregateWithDefaultValues() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
         // when
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(id, dayId.id(), userId);
 
         // then
-        assertEquals(dayId, aggregate.getId());
+        assertEquals(id, aggregate.getId());
+        assertEquals(userId, aggregate.getUserId());
         assertEquals(DayScore.NONE, aggregate.getDayScore());
         assertFalse(aggregate.isLocked());
-        assertEquals(0, aggregate.getExpectedVersion());
-        assertTrue(aggregate.getChanges().isEmpty());
+        assertEquals(0, aggregate.getVersion());
+        assertEquals(1, aggregate.getChanges().size());
     }
 
     @Test
     void shouldRateDayAndRecordEvent() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
+        aggregate.clearChanges();
 
         // when
         aggregate.rate(DayScore.FIVE);
@@ -41,7 +46,7 @@ class DayAggregateTest {
         assertEquals(DayScore.FIVE, aggregate.getDayScore());
         assertEquals(1, aggregate.getChanges().size());
 
-        DayDomainEvent event = aggregate.getChanges().get(0);
+        DayDomainEvent event = aggregate.getChanges().getFirst();
         assertInstanceOf(DayRated.class, event);
         DayRated dayRated = (DayRated) event;
         assertEquals(dayId, dayRated.dayId());
@@ -52,7 +57,8 @@ class DayAggregateTest {
     void shouldAllowRatingDayMultipleTimes() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
+        aggregate.clearChanges();
 
         // when
         aggregate.rate(DayScore.THREE);
@@ -67,7 +73,7 @@ class DayAggregateTest {
     void shouldThrowExceptionWhenRatingNullScore() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
 
         // when & then
         IllegalArgumentException exception = assertThrows(
@@ -81,7 +87,7 @@ class DayAggregateTest {
     void shouldThrowExceptionWhenRatingFutureDay() {
         // given
         DayId futureDay = DayId.of(LocalDate.now().plusDays(1));
-        DayAggregate aggregate = new DayAggregate(futureDay);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), futureDay.id(), UUID.randomUUID());
 
         // when & then
         IllegalArgumentException exception = assertThrows(
@@ -95,7 +101,8 @@ class DayAggregateTest {
     void shouldAllowRatingToday() {
         // given
         DayId today = DayId.of(LocalDate.now());
-        DayAggregate aggregate = new DayAggregate(today);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), today.id(), UUID.randomUUID());
+        aggregate.clearChanges();
 
         // when
         aggregate.rate(DayScore.FOUR);
@@ -109,7 +116,8 @@ class DayAggregateTest {
     void shouldLockDayAndRecordEvent() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
+        aggregate.clearChanges();
 
         // when
         aggregate.lock();
@@ -118,7 +126,7 @@ class DayAggregateTest {
         assertTrue(aggregate.isLocked());
         assertEquals(1, aggregate.getChanges().size());
 
-        DayDomainEvent event = aggregate.getChanges().get(0);
+        DayDomainEvent event = aggregate.getChanges().getFirst();
         assertInstanceOf(DayLocked.class, event);
         DayLocked dayLocked = (DayLocked) event;
         assertEquals(dayId, dayLocked.dayId());
@@ -128,7 +136,8 @@ class DayAggregateTest {
     void shouldNotRecordMultipleLockEvents() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
+        aggregate.clearChanges();
 
         // when
         aggregate.lock();
@@ -144,7 +153,7 @@ class DayAggregateTest {
     void shouldThrowExceptionWhenRatingLockedDay() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
         aggregate.rate(DayScore.THREE);
         aggregate.lock();
 
@@ -160,7 +169,7 @@ class DayAggregateTest {
     void shouldClearChanges() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
         aggregate.rate(DayScore.FOUR);
         aggregate.lock();
 
@@ -176,8 +185,10 @@ class DayAggregateTest {
     @Test
     void shouldReturnUnmodifiableListOfChanges() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(id, dayId.id(), userId);
         aggregate.rate(DayScore.THREE);
 
         // when
@@ -185,94 +196,106 @@ class DayAggregateTest {
 
         // then
         assertThrows(UnsupportedOperationException.class, () ->
-            changes.add(new DayRated(dayId, DayScore.FIVE))
+            changes.add(new DayRated(id, dayId, DayScore.FIVE, userId))
         );
     }
 
     @Test
     void shouldRecreateAggregateFromEmptyHistory() {
         // given
-        DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
         List<DayDomainEvent> history = List.of();
 
         // when
-        DayAggregate aggregate = DayAggregate.recreate(dayId, history);
+        DayAggregate aggregate = DayAggregate.recreate(history);
 
         // then
-        assertEquals(dayId, aggregate.getId());
         assertEquals(DayScore.NONE, aggregate.getDayScore());
         assertFalse(aggregate.isLocked());
-        assertEquals(0, aggregate.getExpectedVersion());
+        assertEquals(0, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
     @Test
     void shouldRecreateAggregateFromSingleRatingEvent() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
         List<DayDomainEvent> history = List.of(
-            new DayRated(dayId, DayScore.FOUR)
+            new DayDomainEvent.DayCreated(id, dayId, userId),
+            new DayRated(id, dayId, DayScore.FOUR, userId)
         );
 
         // when
-        DayAggregate aggregate = DayAggregate.recreate(dayId, history);
+        DayAggregate aggregate = DayAggregate.recreate(history);
 
         // then
-        assertEquals(dayId, aggregate.getId());
+        assertEquals(id, aggregate.getId());
+        assertEquals(userId, aggregate.getUserId());
         assertEquals(DayScore.FOUR, aggregate.getDayScore());
         assertFalse(aggregate.isLocked());
-        assertEquals(1, aggregate.getExpectedVersion());
+        assertEquals(2, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
     @Test
     void shouldRecreateAggregateFromMultipleEvents() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
         List<DayDomainEvent> history = List.of(
-            new DayRated(dayId, DayScore.TWO),
-            new DayRated(dayId, DayScore.FOUR),
-            new DayLocked(dayId)
+            new DayDomainEvent.DayCreated(id, dayId, userId),
+            new DayRated(id, dayId, DayScore.TWO, userId),
+            new DayRated(id, dayId, DayScore.FOUR, userId),
+            new DayLocked(id, dayId)
         );
 
         // when
-        DayAggregate aggregate = DayAggregate.recreate(dayId, history);
+        DayAggregate aggregate = DayAggregate.recreate(history);
 
         // then
-        assertEquals(dayId, aggregate.getId());
+        assertEquals(id, aggregate.getId());
+        assertEquals(userId, aggregate.getUserId());
         assertEquals(DayScore.FOUR, aggregate.getDayScore());
         assertTrue(aggregate.isLocked());
-        assertEquals(3, aggregate.getExpectedVersion());
+        assertEquals(4, aggregate.getVersion());
         assertTrue(aggregate.getChanges().isEmpty());
     }
 
     @Test
     void shouldRecreateAggregateWithMultipleRatings() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
         List<DayDomainEvent> history = List.of(
-            new DayRated(dayId, DayScore.ONE),
-            new DayRated(dayId, DayScore.TWO),
-            new DayRated(dayId, DayScore.THREE),
-            new DayRated(dayId, DayScore.FOUR)
+            new DayDomainEvent.DayCreated(id, dayId, userId),
+            new DayRated(id, dayId, DayScore.ONE, userId),
+            new DayRated(id, dayId, DayScore.TWO, userId),
+            new DayRated(id, dayId, DayScore.THREE, userId),
+            new DayRated(id, dayId, DayScore.FOUR, userId)
         );
 
         // when
-        DayAggregate aggregate = DayAggregate.recreate(dayId, history);
+        DayAggregate aggregate = DayAggregate.recreate(history);
 
         // then
         assertEquals(DayScore.FOUR, aggregate.getDayScore());
-        assertEquals(4, aggregate.getExpectedVersion());
+        assertEquals(5, aggregate.getVersion());
     }
 
     @Test
     void shouldAllowNewRatingsAfterRecreation() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
         List<DayDomainEvent> history = List.of(
-            new DayRated(dayId, DayScore.THREE)
+            new DayDomainEvent.DayCreated(id, dayId, userId),
+            new DayRated(id, dayId, DayScore.THREE, userId)
         );
-        DayAggregate aggregate = DayAggregate.recreate(dayId, history);
+        DayAggregate aggregate = DayAggregate.recreate(history);
 
         // when
         aggregate.rate(DayScore.FIVE);
@@ -280,18 +303,21 @@ class DayAggregateTest {
         // then
         assertEquals(DayScore.FIVE, aggregate.getDayScore());
         assertEquals(1, aggregate.getChanges().size());
-        assertEquals(1, aggregate.getExpectedVersion());
+        assertEquals(2, aggregate.getVersion());
     }
 
     @Test
     void shouldNotAllowRatingAfterRecreatingLockedDay() {
         // given
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
         List<DayDomainEvent> history = List.of(
-            new DayRated(dayId, DayScore.THREE),
-            new DayLocked(dayId)
+            new DayDomainEvent.DayCreated(id, dayId, userId),
+            new DayRated(id, dayId, DayScore.THREE, userId),
+            new DayLocked(id, dayId)
         );
-        DayAggregate aggregate = DayAggregate.recreate(dayId, history);
+        DayAggregate aggregate = DayAggregate.recreate(history);
 
         // when & then
         assertThrows(IllegalStateException.class, () ->
@@ -303,7 +329,8 @@ class DayAggregateTest {
     void shouldHandleCompleteWorkflow() {
         // given
         DayId dayId = DayId.of(LocalDate.of(2026, 7, 20));
-        DayAggregate aggregate = new DayAggregate(dayId);
+        DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
+        aggregate.clearChanges();
 
         // when - rate the day multiple times, then lock
         aggregate.rate(DayScore.TWO);

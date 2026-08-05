@@ -17,14 +17,14 @@ public class DayProjectionListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void on(DayRated event) {
-        Optional<DayProjection> byDate = dayProjectionRepository.findById(event.dayId().id());
+        Optional<DayProjection> day = dayProjectionRepository.findById(event.id());
 
         DayProjection projection;
-        if (byDate.isPresent()) {
-            projection = byDate.get();
+        if (day.isPresent()) {
+            projection = day.get();
             projection.setScore(event.score().getScore());
         } else {
-            projection = new DayProjection(event.dayId().id(), event.score().getScore(), false);
+            projection = new DayProjection(event.id(), event.userId(), event.dayId().id(), event.score().getScore(), false);
         }
 
         dayProjectionRepository.save(projection);
@@ -32,7 +32,7 @@ public class DayProjectionListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void on(DayLocked event) {
-        Optional<DayProjection> byDate = dayProjectionRepository.findById(event.dayId().id());
+        Optional<DayProjection> byDate = dayProjectionRepository.findById(event.id());
 
         if (byDate.isPresent()) {
             var current = byDate.get();

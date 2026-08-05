@@ -1,17 +1,22 @@
 package com.bsjhx.dayproductivityscore.api.rest;
 
 import com.bsjhx.dayproductivityscore.api.rest.DayRestApiDto.DayRateRequest;
+import com.bsjhx.dayproductivityscore.api.rest.DayRestApiDto.SingleDayResponse;
 import com.bsjhx.dayproductivityscore.application.command.DayCommand.RateDay;
 import com.bsjhx.dayproductivityscore.application.command.DayCommandHandler;
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.DayScoreView;
 import com.bsjhx.dayproductivityscore.application.query.DayQuery.GetDaysInRangeQuery;
 import com.bsjhx.dayproductivityscore.application.query.DayQueryService;
 import com.bsjhx.dayproductivityscore.domain.DayScore;
+import com.bsjhx.dayproductivityscore.infrastructure.security.UserPrincipal;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/day")
@@ -25,17 +30,34 @@ public class DayController {
         this.dayQueryService = dayQueryService;
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/")
-    public ResponseEntity<Void> post(@RequestBody DayRateRequest request) {
-        dayCommandHandler.handle(new RateDay(request.day(), DayScore.withScore(request.score())));
+    public ResponseEntity<Void> post(@RequestBody DayRateRequest request, Authentication authentication) {
+        UUID userId = getUserId(authentication);
+        dayCommandHandler.handle(new RateDay(userId, request.day(), DayScore.withScore(request.score())));
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/")
-    public ResponseEntity<List<DayScoreView>> getByDay(@RequestParam("from") LocalDate from, @RequestParam(value = "to", required = false) LocalDate to) {
-        return ResponseEntity.ok(
-                dayQueryService.handle(new GetDaysInRangeQuery(from, to))
-        );
+    public ResponseEntity<List<SingleDayResponse>> getByDay(
+            @RequestParam("from") LocalDate from,
+            @RequestParam(value = "to", required = false) LocalDate to,
+            Authentication authentication) {
+
+        UUID userId = getUserId(authentication);
+        List<DayScoreView> views = dayQueryService.handle(new GetDaysInRangeQuery(userId, from, to));
+
+        List<SingleDayResponse> responses = views.stream()
+                .map(v -> new SingleDayResponse(v.date(), v.score(), v.locked()))
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    private UUID getUserId(Authentication authentication) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return principal.getId();
     }
 
 }
