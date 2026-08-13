@@ -8,6 +8,25 @@ function checkAuth() {
     return true;
 }
 
+// Show toast notification
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Remove after 4 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
 // Add token to fetch requests
 function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
@@ -95,23 +114,31 @@ async function fetchDays(fromDate, toDate) {
 
 // Rate a day
 async function rateDay(date, score) {
-    const url = '/day/';
-    const response = await authFetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            day: formatDate(date),
-            score: score
-        })
-    });
+    try {
+        const url = '/day/';
+        const response = await authFetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                day: formatDate(date),
+                score: score
+            })
+        });
 
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            showToast(errorData.message || 'Failed to rate day', 'error');
+            return;
+        }
+
+        showToast('Day rated successfully!', 'success');
+        await renderWeek();
+    } catch (error) {
+        console.error('Error rating day:', error);
+        showToast('Failed to rate day', 'error');
     }
-
-    await renderWeek();
 }
 
 // Render week view

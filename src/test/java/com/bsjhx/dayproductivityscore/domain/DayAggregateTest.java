@@ -76,8 +76,8 @@ class DayAggregateTest {
         DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), dayId.id(), UUID.randomUUID());
 
         // when & then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        DomainException exception = assertThrows(
+            DomainException.class,
             () -> aggregate.rate(null)
         );
         assertEquals("DayScore cannot be null", exception.getMessage());
@@ -90,8 +90,8 @@ class DayAggregateTest {
         DayAggregate aggregate = DayAggregate.create(UUID.randomUUID(), futureDay.id(), UUID.randomUUID());
 
         // when & then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        DomainException exception = assertThrows(
+            DomainException.class,
             () -> aggregate.rate(DayScore.FIVE)
         );
         assertEquals("Must not rate a day in the future", exception.getMessage());
@@ -158,8 +158,8 @@ class DayAggregateTest {
         aggregate.lock();
 
         // when & then
-        IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
+        DomainException exception = assertThrows(
+                DomainException.class,
             () -> aggregate.rate(DayScore.FIVE)
         );
         assertEquals("DayScore cannot be changed when the day is locked", exception.getMessage());
@@ -320,7 +320,7 @@ class DayAggregateTest {
         DayAggregate aggregate = DayAggregate.recreate(history);
 
         // when & then
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(DomainException.class, () ->
             aggregate.rate(DayScore.FIVE)
         );
     }
@@ -351,7 +351,7 @@ class DayAggregateTest {
         assertInstanceOf(DayLocked.class, changes.get(3));
 
         // verify cannot rate after lock
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(DomainException.class, () ->
             aggregate.rate(DayScore.FIVE)
         );
     }
