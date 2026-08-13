@@ -68,7 +68,7 @@ public class DayController {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    record ErrorResponse(String error, String message, Instant timestamp) {
+    public record ErrorResponse(String error, String message, Instant timestamp) {
     }
 
     private UUID getUserId(Authentication authentication) {
