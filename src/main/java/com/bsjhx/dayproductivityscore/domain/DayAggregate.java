@@ -44,13 +44,13 @@ public class DayAggregate extends AbstractAggregate {
 
     public void rate(DayScore dayScore) {
         if (dayScore == null) {
-            throw new IllegalArgumentException("DayScore cannot be null");
+            throw new DomainException("DayScore cannot be null");
         }
         if (locked) {
-            throw new IllegalStateException("DayScore cannot be changed when the day is locked");
+            throw new DomainException("DayScore cannot be changed when the day is locked");
         }
         if (dayId.id().isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("Must not rate a day in the future");
+            throw new DomainException("Must not rate a day in the future");
         }
 
         raise(new DayRated(id, dayId, dayScore, userId));
